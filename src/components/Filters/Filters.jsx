@@ -6,7 +6,11 @@ export const Filters = ({
   selectedUserId,
   usersFromServer,
   setQueryForSeach,
+  selectedAlbumsId,
+  albumsFromServer,
   setSelectedUserId,
+  setSelectedAlbumsId,
+  handlerAlbumSelector,
 }) => (
   <div className="block">
     <nav className="panel">
@@ -67,43 +71,43 @@ export const Filters = ({
       <div className="panel-block is-flex-wrap-wrap">
         <a
           href="#/"
-          className="button is-success mr-6 is-outlined"
+          className={cn(
+            'button is-success mr-6',
+            { 'is-outlined': selectedAlbumsId.length },
+          )}
+          onClick={() => setSelectedAlbumsId([])}
         >
           All
         </a>
 
-        <a
-          className="button mr-2 my-1 is-info"
-          href="#/"
-        >
-          Album 1
-        </a>
+        {albumsFromServer.map(albumFromServer => {
+          const albumId = albumFromServer.id;
 
-        <a
-          className="button mr-2 my-1"
-          href="#/"
-        >
-          Album 2
-        </a>
+          function truncateString(str, maxLength) {
+            if (str.length > maxLength) {
+              const truncated = str.slice(0, maxLength);
 
-        <a
-          className="button mr-2 my-1 is-info"
-          href="#/"
-        >
-          Album 3
-        </a>
-        <a
-          className="button mr-2 my-1"
-          href="#/"
-        >
-          Album 4
-        </a>
-        <a
-          className="button mr-2 my-1"
-          href="#/"
-        >
-          Album 5
-        </a>
+              return truncated.endsWith(' ')
+                ? `${truncated.trim()}...`
+                : `${truncated}...`;
+            }
+
+            return str;
+          }
+
+          return (
+            <a
+              href="#/"
+              key={albumId}
+              className={cn('button mr-2 my-1', {
+                'is-info': selectedAlbumsId.includes(albumFromServer.id),
+              })}
+              onClick={() => handlerAlbumSelector(albumId)}
+            >
+              {truncateString(albumFromServer.title, 7)}
+            </a>
+          );
+        })}
       </div>
 
       <div className="panel-block">

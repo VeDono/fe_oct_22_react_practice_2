@@ -19,8 +19,13 @@ const collectedPhotos = photosFromServer.map((photoRecived) => {
   return { album, user, ...photoRecived };
 });
 
-function getSortedPhotos(photosReceived, selectedUserId, searchQuery) {
-  if (!selectedUserId && !searchQuery) {
+function getSortedPhotos(
+  photosReceived,
+  selectedUserId,
+  searchQuery,
+  selectedAlbumsId,
+) {
+  if (!selectedUserId && !searchQuery && selectedAlbumsId.length === 0) {
     return photosReceived;
   }
 
@@ -37,23 +42,42 @@ function getSortedPhotos(photosReceived, selectedUserId, searchQuery) {
       ? preparedPhotoOwnerId === selectedUserId
       : true;
 
-    return isMatchSearchQuery && isMatchSelectedUser;
+    const isMatchSelectedAlbum = selectedAlbumsId && selectedAlbumsId.length > 0
+      ? selectedAlbumsId.includes(photo.album?.id)
+      : true;
+
+    return isMatchSearchQuery && isMatchSelectedUser && isMatchSelectedAlbum;
   });
 }
 
 export const App = () => {
   const [selectedUserId, setSelectedUserId] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedAlbumsId, setSelectedAlbumsId] = useState([]);
 
   const preparedPhotos = getSortedPhotos(
     collectedPhotos,
     selectedUserId,
     searchQuery,
+    selectedAlbumsId,
   );
 
   const reset = () => {
     setSearchQuery('');
     setSelectedUserId('');
+  };
+
+  const handlerAlbumSelector = (albumIdRecived) => {
+    if (selectedAlbumsId.includes(albumIdRecived)) {
+      setSelectedAlbumsId(
+        selectedAlbumsId.filter(albumId => albumId !== albumIdRecived),
+      );
+    } else {
+      setSelectedAlbumsId([
+        ...selectedAlbumsId,
+        albumIdRecived,
+      ]);
+    }
   };
 
   return (
@@ -67,8 +91,13 @@ export const App = () => {
           selectedUserId={selectedUserId}
           usersFromServer={usersFromServer}
           albumsFromServer={albumsFromServer}
+          selectedAlbumsId={selectedAlbumsId}
+          setSelectedAlbumsId={(recivedValue) => (
+            setSelectedAlbumsId(recivedValue)
+          )}
           setQueryForSeach={query => setSearchQuery(query)}
           setSelectedUserId={value => setSelectedUserId(value)}
+          handlerAlbumSelector={(albumId) => handlerAlbumSelector(albumId)}
         />
 
         <Table preparedPhotos={preparedPhotos} />
